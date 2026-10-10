@@ -1,4 +1,4 @@
-# Private VPS deployment
+# VPS deployment
 
 Production uses the existing `compose.yaml` together with
 `compose.production.yaml`. The override removes the build configuration,
@@ -77,6 +77,31 @@ The backup timer is enabled independently. Do not restart the VPS merely to
 test deployment; an approved Docker restart can verify restart policies while
 checking SSH and UFW afterward.
 
-Cloudflare/DNS/HTTPS changes are a separate step. Before publication, verify
-the frontend reset route, Resend delivery, cookie behavior through HTTPS,
-explicit CORS origins, and off-server backup recovery.
+## Public HTTPS through Caddy
+
+The alpha deployment uses Caddy on the VPS to proxy
+`https://api.mini-jira.ru` to `http://127.0.0.1:8000`.
+Cloudflare serves DNS only: the API hostname has an A record pointing to
+`153.76.162.146`. The root domain and its existing Tunnel are independent.
+The API Tunnel service is disabled; no Tunnel routes need to be deleted.
+
+The deployed configuration is tracked in `ops/Caddyfile`; Caddy reads it as
+`/etc/caddy/Caddyfile`. Its systemd service runs as the `caddy` user and is
+enabled at boot. UFW allows incoming TCP 80 and 443 alongside the existing
+SSH rule. Port 8000 remains bound to localhost and PostgreSQL has no published
+port. HTTP redirects to HTTPS; Caddy obtains and renews a public certificate
+automatically. Preserve `/var/lib/caddy`, which contains private TLS material,
+outside Git with restricted access.
+
+Caddy 2.11.7 was installed from the official GitHub release with SHA256
+verification because the official Cloudsmith APT repository returned HTTP
+402. Its APT source is retained but disabled. Caddy binary upgrades are manual;
+certificate renewal is automatic. Use [official installation sources](https://caddyserver.com/docs/install).
+
+Validate configuration before reloading Caddy and check `/health`, `/docs`,
+and `/openapi.json` over HTTPS with certificate verification enabled. Save the
+current DNS, UFW and Caddy configuration before changing network settings.
+
+The API is an early alpha. Browser CORS configuration, frontend password-reset
+routing, real email delivery and off-server backup recovery require their own
+checks; successful HTTP health checks do not prove those flows.
