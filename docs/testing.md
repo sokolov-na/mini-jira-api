@@ -15,6 +15,17 @@ Coverage measures production code, including branches, excluding tests and
 migrations. There is no minimum percentage gate; use missing lines to find
 meaningful gaps.
 
+## GitHub Actions
+
+CI runs on pushes and pull requests to `main`, or manually. It uses Python 3.14,
+uv 0.12.5 and locked dependencies on Ubuntu, checking Ruff, formatting and
+basedpyright before running migrations and the full test suite with coverage.
+An ephemeral PostgreSQL 18 service supplies `mini_jira_test`; standalone Alembic
+checks use its public schema, while test fixtures use separate temporary schemas.
+Only dummy application credentials are used, and Resend delivery remains mocked
+by the existing test fixtures. The final steps check and build the Docker image
+without publishing it or deploying the application.
+
 ## Levels and fixtures
 
 - `tests/unit`: isolated validation, authentication, logging and safety checks;

@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql+psycopg://mini_jira_test:ci-only-password@127.0.0.1:5432/mini_jira_test
+      TEST_DATABASE_URL: postgresql+psycopg://mini_jira_test:ci-only-password@127.0.0.1:5432/mini_jira_test
+      JWT_SECRET_KEY: ci-only-key-never-use-in-production
+      RESEND_API_KEY: ci-only-no-network
+      RESEND_FROM_EMAIL: noreply@example.org
+      PASSWORD_RESET_FRONTEND_URL: https://frontend.example.com
+      CORS_ORIGINS: '[]'
+      REFRESH_COOKIE_SECURE: 'true'
+      LOG_FORMAT: json
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: mini_jira_test
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: mini_jira_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mini_jira_test -d mini_jira_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4
+        with:
+          version: '0.12.5'
+          python-version: '3.14'
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked dependencies
+        run: |
+          uv python install 3.14
+          uv sync --locked --group dev
+      - name: Ruff lint
+        run: uv run --no-sync ruff check .
+      - name: Ruff format
+        run: uv run --no-sync ruff format --check .
+      - name: Check types
+        run: uv run --no-sync basedpyright
+      - name: Check migrations on a fresh database
+        run: |
+          uv run --no-sync alembic upgrade head
+          uv run --no-sync alembic current
+          uv run --no-sync alembic upgrade head
+          uv run --no-sync alembic check
+      - name: Run all tests with PostgreSQL and coverage
+        run: uv run --no-sync pytest --strict-markers --cov=mini_jira --cov-branch --cov-report=term-missing -ra
+      - name: Check Dockerfile
+        run: docker build --check .
+      - name: Build Docker image
+        run: docker build --tag mini-jira-api:ci .
