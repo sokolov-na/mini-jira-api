@@ -1,0 +1,26 @@
+services:
+  api:
+    build: !reset null
+    image: ${MINI_JIRA_IMAGE:?Set MINI_JIRA_IMAGE to a GHCR digest}
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+  db:
+    image: ${POSTGRES_IMAGE:?Set POSTGRES_IMAGE to a PostgreSQL 18 digest}
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
