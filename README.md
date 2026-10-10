@@ -1,7 +1,34 @@
 # Mini Jira API
 
-A learning backend project for Mini Jira. The current API implements
-user registration, authentication, and account management.
+[![CI](https://github.com/sokolov-na/mini-jira-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sokolov-na/mini-jira-api/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/sokolov-na/mini-jira-api?include_prereleases&label=release)](https://github.com/sokolov-na/mini-jira-api/releases/tag/v0.1.0-alpha)
+![Python](https://img.shields.io/badge/Python-3.14%2B-3776AB?logo=python&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white)
+
+A learning FastAPI backend for Mini Jira, with PostgreSQL persistence,
+JWT authentication, account management, and a Docker deployment over HTTPS.
+
+**Current release: [v0.1.0-alpha](https://github.com/sokolov-na/mini-jira-api/releases/tag/v0.1.0-alpha).**
+This first alpha covers users and authentication. Jira projects and issues are
+not implemented yet, and API contracts may change.
+
+| Explore | Link |
+| --- | --- |
+| Interactive API docs | [api.mini-jira.ru/docs](https://api.mini-jira.ru/docs) |
+| OpenAPI schema | [openapi.json](https://api.mini-jira.ru/openapi.json) |
+| Health endpoint | [/health](https://api.mini-jira.ru/health) |
+| Release history | [Changelog](CHANGELOG.md) |
+
+## Deployment
+
+The public API runs on an Ubuntu VPS behind Caddy with automatic HTTPS.
+Docker Compose runs the API and PostgreSQL 18; the API binds to localhost and
+the database has no published port. CI validates quality, migrations, tests,
+and Docker builds before publishing production images to GHCR.
+
+See [production deployment](docs/production.md) for image pinning, secrets,
+backups, and the Caddy configuration. PostgreSQL dumps on the VPS are local
+recovery copies; off-server backup storage is a separate task.
 
 ## Features
 
@@ -133,4 +160,5 @@ commands, isolation, and limitations.
 - [Testing](docs/testing.md)
 - [Migrations](docs/migrations.md)
 - [Logging](docs/logging.md)
+- [Production deployment](docs/production.md)
 - [Changelog](CHANGELOG.md)

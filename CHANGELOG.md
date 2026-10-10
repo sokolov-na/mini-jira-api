@@ -1,9 +1,17 @@
 # Changelog
 
 Notable project changes are recorded here using Keep a Changelog categories.
-No official release has been published; current functionality is unreleased.
 
 ## [Unreleased]
+
+### Changed
+
+- Repository presentation, README navigation, and published release notes.
+
+## [v0.1.0-alpha] - 2026-10-11
+
+First public alpha, focused on authentication and user accounts. Project and
+issue management are not included; API contracts may change.
 
 ### Added
 
@@ -28,6 +36,10 @@ No official release has been published; current functionality is unreleased.
 - pytest-cov tooling with branch coverage and missing-line reports, without a
   minimum coverage gate.
 - Ruff, basedpyright, pre-commit, and uv dependency/lock-file tooling.
+- Docker Compose deployment with PostgreSQL 18, pinned production images,
+  healthchecks, bounded container logs, and GHCR image publication after CI.
+- Scheduled local PostgreSQL backups with rotation and restoration checks.
+- Public HTTPS through Caddy, with the deployed configuration tracked in Git.
 
 ### Changed
 
@@ -60,3 +72,6 @@ No official release has been published; current functionality is unreleased.
   issuance/consumption. Profile and password updates write only their own fields.
 - Reset requests return the same accepted response for known and unknown users
   and delivery failures; reset links use a configured trusted HTTPS frontend URL.
+
+[Unreleased]: https://github.com/sokolov-na/mini-jira-api/compare/v0.1.0-alpha...HEAD
+[v0.1.0-alpha]: https://github.com/sokolov-na/mini-jira-api/releases/tag/v0.1.0-alpha
