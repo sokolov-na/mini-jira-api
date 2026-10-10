@@ -23,8 +23,13 @@ basedpyright before running migrations and the full test suite with coverage.
 An ephemeral PostgreSQL 18 service supplies `mini_jira_test`; standalone Alembic
 checks use its public schema, while test fixtures use separate temporary schemas.
 Only dummy application credentials are used, and Resend delivery remains mocked
-by the existing test fixtures. The final steps check and build the Docker image
-without publishing it or deploying the application.
+by the existing test fixtures. The `checks` job also checks and builds the
+Docker image. After successful checks, `publish` runs only on a push to `main`
+and publishes the production image to `ghcr.io/<owner>/<repository>:<full-sha>`.
+It uses the job-scoped `GITHUB_TOKEN` with `packages: write`; pull requests and
+manual runs never publish. The image digest and pull reference are recorded in
+the job summary, and the digest is available as a job output. No deployment is
+performed; an authenticated pull may be required for a private GHCR package.
 
 ## Levels and fixtures
 
