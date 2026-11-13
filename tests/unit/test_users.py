@@ -155,7 +155,7 @@ def test_credentials_and_registration_accept_current_password_policy(
 ) -> None:
     credentials = UserCredentials(login="Mixed-Case", password=password)
     assert credentials.model_dump() == {
-        "login": "Mixed-Case",
+        "login": "mixed-case",
         "password": password,
     }
     assert (

@@ -2,7 +2,6 @@ from uuid import UUID
 
 import structlog
 from pwdlib import PasswordHash
-from pydantic import ValidationError
 
 from mini_jira.exceptions import (
     InvalidCredentials,
@@ -13,6 +12,7 @@ from mini_jira.exceptions import (
 from mini_jira.users.models import User
 from mini_jira.users.repository.protocol import UserRepository
 from mini_jira.users.schemas import (
+    Login,
     UserCredentials,
     UserDTO,
     UserPasswordReset,
@@ -20,7 +20,6 @@ from mini_jira.users.schemas import (
     UserPasswordUpdate,
     UserProfileUpdate,
     UserRegister,
-    normalize_email,
 )
 
 _hasher = PasswordHash.recommended()
@@ -28,13 +27,11 @@ logger = structlog.get_logger(__name__)
 
 
 async def _find_user_by_login(
-    repository: UserRepository, login: str
+    repository: UserRepository, login: Login
 ) -> User | None:
-    try:
-        email = normalize_email(login)
-    except ValidationError:
-        return await repository.get_by_username(login, for_update=True)
-    return await repository.get_by_email(email, for_update=True)
+    if "@" in login:
+        return await repository.get_by_email(login, for_update=True)
+    return await repository.get_by_username(login, for_update=True)
 
 
 class RegisterUserUseCase:

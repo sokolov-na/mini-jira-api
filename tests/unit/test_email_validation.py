@@ -89,7 +89,10 @@ def test_email_variants_agree_with_deliverable_domain(
             == normalized
         )
         assert isinstance(value, str)
-        assert schemas.normalize_email(value) == normalized
+        assert (
+            schemas.UserCredentials(login=value, password="password").login
+            == normalized
+        )
 
 
 @pytest.mark.parametrize(
@@ -113,7 +116,8 @@ def test_registration_and_login_share_email_normalization(
 ) -> None:
     assert (
         schemas.UserRegister(**(registration_data() | {"email": value})).email
-        == schemas.normalize_email(value)
+        == schemas.UserCredentials(login=value, password="password").login
+        == schemas.UserPasswordReset(login=value).login
         == "User@example.org"
     )
 
@@ -127,7 +131,7 @@ def test_email_normalization_does_not_check_dns(
     value = "private-user@private-domain.org"
     assert TypeAdapter(EmailStr).validate_python(value) == value
     resolver.resolve.assert_not_called()
-    assert schemas.normalize_email(value) == value
+    assert schemas.UserPasswordReset(login=value).login == value
     assert (
         schemas.UserRegister(**(registration_data() | {"email": value})).email
         == value

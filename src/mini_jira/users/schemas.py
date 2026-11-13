@@ -8,7 +8,6 @@ from pydantic import (
     ConfigDict,
     EmailStr,
     Field,
-    TypeAdapter,
 )
 from pydantic_core import PydanticCustomError
 
@@ -30,24 +29,18 @@ def validate_username(username: str) -> str:
     return username.lower()
 
 
-_email_adapter = TypeAdapter[str](EmailStr)
-
-
-def normalize_email(email: str) -> str:
-    return _email_adapter.validate_python(email)
-
-
 Username = Annotated[
     str,
     Field(min_length=3, max_length=32),
     AfterValidator(validate_username),
 ]
 
+Login = EmailStr | Username
 Password = Annotated[str, Field(min_length=8)]
 
 
 class UserCredentials(BaseModel):
-    login: str
+    login: Login
     password: Password
 
 
@@ -68,7 +61,7 @@ class UserPasswordUpdate(BaseModel):
 
 
 class UserPasswordReset(BaseModel):
-    login: str
+    login: Login
 
 
 class UserPasswordResetConfirm(BaseModel):
