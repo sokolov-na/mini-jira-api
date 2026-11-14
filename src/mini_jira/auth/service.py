@@ -188,7 +188,10 @@ async def consume_password_reset_token(
     session: AsyncSession,
     token: str,
 ) -> UUID:
-    token_hash = hash_token(token)
+    try:
+        token_hash = hash_token(token)
+    except UnicodeEncodeError as exc:
+        raise InvalidTokenError() from exc
     user_id = await session.scalar(
         select(PasswordResetToken.user_id).where(
             PasswordResetToken.token_hash == token_hash
