@@ -129,10 +129,8 @@ async def test_registration_accepts_current_password_policy(
     ).status_code == 200
 
 
-@pytest.mark.parametrize(
-    "login", ["unknown-user", "broken@", "user..x@host.org"]
-)
-async def test_invalid_or_unknown_login_is_safe(
+@pytest.mark.parametrize("login", ["unknown-user", "unknown@example.org"])
+async def test_unknown_login_is_safe(
     login: str, client: httpx.AsyncClient
 ) -> None:
     response = await client.post(
@@ -140,4 +138,22 @@ async def test_invalid_or_unknown_login_is_safe(
     )
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid login or password"}
+    assert "set-cookie" not in response.headers
+
+
+@pytest.mark.parametrize("login", ["broken@", "user..x@host.org"])
+async def test_invalid_login_is_rejected_by_schema(
+    login: str, client: httpx.AsyncClient
+) -> None:
+    response = await client.post(
+        "/auth/login", json={"login": login, "password": "password"}
+    )
+    assert response.status_code == 422
+    errors = response.json()["detail"]
+    assert errors
+    for error in errors:
+        assert set(error) == {"type", "loc", "msg"}
+        assert error["loc"][:2] == ["body", "login"]
+    assert login not in response.text
+    assert "password" not in response.text
     assert "set-cookie" not in response.headers
